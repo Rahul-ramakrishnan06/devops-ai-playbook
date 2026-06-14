@@ -7,8 +7,17 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  backend "s3" {
+    bucket  = "terraform-state-rahul-r"
+    key     = "devops-ai-project/terraform.tfstate"
+    region  = "us-east-1"
+    profile = "rahul-aws"
+    encrypt = true
+  }
 }
 
 provider "aws" {
   region = var.region
+  profile = "rahul-aws"
 }
