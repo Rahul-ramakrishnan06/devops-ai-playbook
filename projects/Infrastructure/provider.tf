@@ -21,3 +21,4 @@ provider "aws" {
   region = var.region
   profile = "rahul-aws"
 }
+
