@@ -1,0 +1,20 @@
+projects/Infrastructure/modules/eks/main.tf
+  s_d6a157e5538548::t_704d74db2f654a 31,144
+  s_d6a157e5538548::t_c4141f0984375c 91-115,120,127-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "8c8da1e2d52a65a3f625c9e2d83e2c75b2c9b5d7",
+  "prompts": {},
+  "sessions": {
+    "s_d6a157e5538548": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9586e5d8-fd62-404d-9b87-17182ef32e00",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Rahul-ramakrishnan06 <rahulkarthi06@gmail.com>"
+    }
+  }
+}
