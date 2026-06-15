@@ -28,7 +28,7 @@ resource "aws_eks_cluster" "eks" {
   version  = "1.34"
 
   vpc_config {
-    subnet_ids = var.subnet_ids
+    subnet_ids              = var.subnet_ids
     endpoint_public_access  = true
     endpoint_private_access = false
   }
@@ -82,18 +82,53 @@ resource "aws_iam_role_policy_attachment" "ecr_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+resource "aws_iam_role_policy_attachment" "cloud_watch_agent_policy" {
+  role       = aws_iam_role.eks_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+
+# Launch Template — sets IMDS hop limit to 2 so pods (1 hop from the node)
+# can reach instance metadata and assume the node IAM role. aws-for-fluent-bit
+# needs this to sign CloudWatch Logs requests via the node role.
+
+resource "aws_launch_template" "node" {
+  name_prefix = "${var.cluster_name}-node-"
+
+  # disk_size moved here; it conflicts with disk_size on the node group when a
+  # launch template is attached.
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_size = var.disk_size
+      volume_type = "gp3"
+    }
+  }
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
+
+  # No image_id / user_data — let EKS inject the optimized AMI and bootstrap.
+}
 
 # Node Group
 
 resource "aws_eks_node_group" "node_group" {
-  cluster_name    = aws_eks_cluster.eks.name 
+  cluster_name    = aws_eks_cluster.eks.name
   node_group_name = var.node_group_name
   node_role_arn   = aws_iam_role.eks_node_role.arn
   subnet_ids      = var.subnet_ids
 
   instance_types = var.instance_types
   capacity_type  = var.capacity_type
-  disk_size      = var.disk_size
+
+  launch_template {
+    id      = aws_launch_template.node.id
+    version = aws_launch_template.node.latest_version
+  }
 
   scaling_config {
     desired_size = var.desired_size
@@ -106,7 +141,7 @@ resource "aws_eks_node_group" "node_group" {
   }
 
   tags = {
-    Terraform   = "true"
+    Terraform = "true"
   }
 
 
